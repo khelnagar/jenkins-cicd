@@ -1,8 +1,8 @@
 pipeline {
     agent { 
         node {
-            label 'docker-agent-python'
-            }
+            label 'docker-agent-alpine'
+        }
       }
     triggers {
         pollSCM '* * * * *'
@@ -12,18 +12,8 @@ pipeline {
             steps {
                 echo "Building.."
                 sh '''
-                cd myapp
-                pip install -r requirements.txt
-                '''
-            }
-        }
-        stage('Test') {
-            steps {
-                echo "Testing.."
-                sh '''
-                cd myapp
-                python3 hello.py
-                python3 hello.py --name=Brad
+                  cd client-react
+                  docker build --file ./Dockerfile -t client-react:5 -t floor7/docker-course-client-react-nginx:5 .
                 '''
             }
         }
@@ -31,7 +21,8 @@ pipeline {
             steps {
                 echo 'Deliver....'
                 sh '''
-                echo "doing delivery stuff.."
+                  cd client-react
+                  docker push floor7/docker-course-client-react-nginx:5
                 '''
             }
         }
