@@ -1,0 +1,77 @@
+version: '3.7'
+services:
+  client-react-nginx:
+    image: floor7/docker-course-client-react-nginx:5
+    deploy:
+      mode: replicated
+      replicas: 2 # add two containers
+      update_config:
+        order: start-first # when redeploying start new container first before tearing down the running one
+    init: true
+    networks:
+      - frontend
+    ports:
+      - 80:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"] # curl (by swarm service) this route that exists in nginx routes
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  api-node:
+    image: floor7/docker-course-client-api-node:9
+    init: true
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL_FILE=/run/secrets/database-url
+    secrets:
+      - database-url
+    networks:
+      - frontend
+      - backend
+    ports:
+      - 3000:3000
+    healthcheck:
+      test: ["CMD", "node", "/usr/src/app/healthcheck.js"] # this container is slim and does not have curl so we built the healthcheck route from a js file directly (is this production ready?)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  api-golang:
+    image: floor7/docker-course-client-api-golang:8
+    init: true
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL_FILE=/run/secrets/database-url
+    secrets:
+      - database-url
+    networks:
+      - frontend
+      - backend
+    ports:
+      - 8080:8080
+  db:
+    image: postgres:15.1-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres-passwd
+    secrets:
+      - postgres-passwd
+    networks:
+      - backend
+    ports:
+      - 5432:5432
+volumes:
+  pgdata:
+networks:
+  frontend:
+  backend:
+secrets:
+  database-url:
+    external: true # seret is created already and swarm does not need to manage it as part of the stack
+  postgres-passwd:
+    external: true
