@@ -1,6 +1,11 @@
 pipeline {
     agent {
-        docker { image 'node:22-alpine3.18' }
+        node {
+            label 'docker-agent-node'
+        }
+      }
+    triggers {
+        pollSCM '* * * * *'
     }
     stages {
         stage('Build') {
