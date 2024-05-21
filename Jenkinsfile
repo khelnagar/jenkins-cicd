@@ -6,7 +6,9 @@ node {
     }
 
     stage('Build image') {
-        app = docker.build("client-react:55", "-t floor7/docker-course-client-react-nginx:55 ./client-react")
+        docker.withServer('tcp://172.18.0.2:2375') {
+            app = docker.build("client-react:55", "-t floor7/docker-course-client-react-nginx:55 ./client-react")
+        }
     }
 
     stage('Push image') {
@@ -14,5 +16,4 @@ node {
             app.push("55")
         }
     }
-
 }
