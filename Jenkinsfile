@@ -6,7 +6,7 @@ node {
     }
 
     stage('Build image') {
-        app = docker.build("floor7/docker-course-client-react-nginx:55", "-t client-react:55 ./client-react")
+        app = docker.build("client-react:55", "-t floor7/docker-course-client-react-nginx:55 ./client-react")
     }
 
     stage('Push image') {
