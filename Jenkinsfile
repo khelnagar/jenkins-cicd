@@ -1,30 +1,18 @@
-pipeline {
-    agent {
-        node {
-            label 'docker-agent-docker'
-        }
-      }
-    triggers {
-        pollSCM '* * * * *'
+node {
+    def app
+
+    stage('Clone repository') {
+        checkout scm
     }
-    stages {
-        stage('Build') {
-            steps {
-                echo "Building.."
-                sh '''
-                  cd client-react
-                  docker build --file ./Dockerfile -t client-react:5 -t floor7/docker-course-client-react-nginx:5 .
-                '''
-            }
-        }
-        stage('Deliver') {
-            steps {
-                echo 'Deliver....'
-                sh '''
-                  cd client-react
-                  docker push floor7/docker-course-client-react-nginx:5
-                '''
-            }
+
+    stage('Build image') {
+        app = docker.build("floor7/docker-course-client-react-nginx:55", "-t client-react:55 ./client-react")
+    }
+
+    stage('Push image') {
+        docker.withRegistry('https://hub.docker.com/', 'docker-private-credentials') {
+            app.push("55")
         }
     }
+
 }
